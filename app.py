@@ -8,6 +8,7 @@ Created on Wed Jan  8 18:55:05 2020
 from flask import Flask, request, jsonify, render_template, Response,redirect,url_for
 from Ranking_v1_final import *
 import json
+import numpy as np
 
 app = Flask(__name__)
 
@@ -51,5 +52,6 @@ def searchResult():
     return render_template("result.html",choices=choices, state=state,resultsTable = tableData,productsTable=productsTable,queryValue=sQuery)
 
 if __name__ == "__main__":
-    app.run()
+    # Bind to 0.0.0.0 so the server is reachable from the host/environment
+    app.run(host='0.0.0.0', port=5000, debug=True)
 

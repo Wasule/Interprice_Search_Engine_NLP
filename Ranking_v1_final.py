@@ -4,8 +4,6 @@ import pdb;
 
 #Setting an path where current and imported module exists together.
 import sys
-sys.path.append('F:/DataScienceProject11')
-
 from Search_v1_0 import search
 import Data_Cleaning_Structured_v1_0 as DCS
 
@@ -74,8 +72,12 @@ def return_original_data(ranked_data,dataset):
     
     
 s1="1969 Harley Davidson Ultimate Chopper"
-result=search(s1, 'p')
-ranked_result=rank_2(s1,'m')
 
-# s2="ascoril"
-# ranked_result2=rank_2(s2,'m')
+if __name__ == "__main__":
+    # Example usage when run directly; keep import-time free of side-effects
+    s1 = "1969 Harley Davidson Ultimate Chopper"
+    try:
+        result = search(s1, 'p')
+        ranked_result = rank_2(s1, 'm')
+    except Exception as e:
+        print('Example run failed:', e)

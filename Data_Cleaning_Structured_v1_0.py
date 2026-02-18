@@ -9,15 +9,9 @@ import re
 
 import nltk
 from nltk.tokenize import word_tokenize
-
-nltk.download("averaged_perceptron_tagger")
 from nltk import pos_tag
-
-nltk.download("wordnet")
 from nltk.stem import WordNetLemmatizer
 from nltk.corpus import wordnet
-
-nltk.download("stopwords")
 from nltk.corpus import stopwords
 
 def get_data_from_sql(database,table, password='w12345', host='localhost', port=3306, user='root'):
@@ -171,41 +165,61 @@ def stop_words_removal(doclist):
 
 ###Main 
 
-#For medical data
-med_data=get_data_from_sql(database='classicmodels',password='Gaurav@12345',table='med_data')
-med_data=null_value_treatment(med_data)
-med_data_clean=med_data.replace(to_replace='Ear &Mouth',value='Ear & Mouth')
-med_data_clean=remove_extreme_ends_spaces(med_data_clean)
+# Provide default empty datasets so importing this module is safe.
+med_data = pd.DataFrame()
+products_data = pd.DataFrame()
 
-med_data_combined=med_data_clean.drop(['ID1','ID2','PackSize','MRP'],axis=1)
-med_data_combined=concatenate_fields(med_data_combined)
-med_data_combined=med_data_combined.apply(lambda x: clean_medical_text(x))
 
-all_med_data=tokenizing_data_tolist(med_data_combined)
+def build_datasets_from_sql():
+    # This encapsulates the original top-level dataset construction so it
+    # doesn't run on import. Call directly for local development.
+    # For safety this function will attempt to load from SQL; callers
+    # can catch exceptions or skip it in production.
+    #For medical data
+    med_data_local = get_data_from_sql(database='classicmodels',password='Gaurav@12345',table='med_data')
+    med_data_local=null_value_treatment(med_data_local)
+    med_data_clean=med_data_local.replace(to_replace='Ear &Mouth',value='Ear & Mouth')
+    med_data_clean=remove_extreme_ends_spaces(med_data_clean)
 
-med_data_short=all_med_data[0:1000] ###Note: Shortened to save time. Must be removed in future.
-med_data_pos=pos_tagger(med_data_short)
-med_data_pos=get_wordnet_pos(med_data_pos)
+    med_data_combined=med_data_clean.drop(['ID1','ID2','PackSize','MRP'],axis=1)
+    med_data_combined=concatenate_fields(med_data_combined)
+    med_data_combined=med_data_combined.apply(lambda x: clean_medical_text(x))
 
-all_med_data=lemmatized_list(med_data_pos)
-all_med_data=stop_words_removal(all_med_data)
+    all_med_data=tokenizing_data_tolist(med_data_combined)
 
-#For products data
-products_data=get_data_from_sql(database='classicmodels',password='w12345',table='products')
-products_data=null_value_treatment(products_data)
-products_data_clean=remove_extreme_ends_spaces(products_data)
+    med_data_short=all_med_data[0:1000] ###Note: Shortened to save time. Must be removed in future.
+    med_data_pos=pos_tagger(med_data_short)
+    med_data_pos=get_wordnet_pos(med_data_pos)
 
-products_data_combined=products_data_clean.drop(['quantityInStock','buyPrice','MSRP'],axis=1)
-products_data_combined=concatenate_fields(products_data_combined)
-products_data_combined=products_data_combined.apply(lambda x: clean_products_text(x))
+    all_med_data=lemmatized_list(med_data_pos)
+    all_med_data=stop_words_removal(all_med_data)
 
-all_products_data=tokenizing_data_tolist(products_data_combined)
+    #For products data
+    products_data_local=get_data_from_sql(database='classicmodels',password='w12345',table='products')
+    products_data_local=null_value_treatment(products_data_local)
+    products_data_clean=remove_extreme_ends_spaces(products_data_local)
 
-products_data_pos=pos_tagger(all_products_data)
-products_data_pos=get_wordnet_pos(products_data_pos)
+    products_data_combined=products_data_clean.drop(['quantityInStock','buyPrice','MSRP'],axis=1)
+    products_data_combined=concatenate_fields(products_data_combined)
+    products_data_combined=products_data_combined.apply(lambda x: clean_products_text(x))
 
-all_products_data=lemmatized_list(products_data_pos)
-all_products_data=stop_words_removal(all_products_data)
+    all_products_data=tokenizing_data_tolist(products_data_combined)
+
+    products_data_pos=pos_tagger(all_products_data)
+    products_data_pos=get_wordnet_pos(products_data_pos)
+
+    all_products_data=lemmatized_list(products_data_pos)
+    all_products_data=stop_words_removal(all_products_data)
+
+    return med_data_clean, products_data_clean
+
+
+if __name__ == "__main__":
+    # When run directly, build datasets (useful for development)
+    try:
+        med_data, products_data = build_datasets_from_sql()
+    except Exception as e:
+        print("Failed to build datasets from SQL:", e)
 
 #Run Time calculations
 #stop=time.process_time()

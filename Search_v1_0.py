@@ -6,7 +6,9 @@ from collections import Counter
 
 #Setting an path where current and imported module exists together.
 import sys
-sys.path.append('D:\Personal_DS_Docs\Live Project 2\Codes\FlackCode')
+import os
+# ensure current project directory is on path (no hardcoded Windows paths)
+sys.path.append(os.path.dirname(__file__) or '.')
 
 import Data_Cleaning_Structured_v1_0 as DCS
 from nltk.tokenize import word_tokenize
@@ -148,10 +150,10 @@ def search(sentence,dataset):
     try:
         global worddic
         if dataset=='m':
-            worddic=np.load("D:/Personal_DS_Docs/Live Project 2/Codes/FlackCode/med_index_1000.npy",allow_pickle=True).item()
+            worddic=np.load("med_index_1000.npy",allow_pickle=True).item()
             clean_sentence=DCS.clean_medical_text(sentence)
         elif dataset=='p':
-            worddic=np.load("D:/Personal_DS_Docs/Live Project 2/Codes/FlackCode/products_index.npy",allow_pickle=True).item()
+            worddic=np.load("products_index.npy",allow_pickle=True).item()
             clean_sentence=DCS.clean_products_text(sentence)
         else:
             print("Error: Dataset not found")
@@ -174,8 +176,9 @@ def search(sentence,dataset):
         
         return(sentence, words, words_quantity, all_idfs, words_presence, closeness_metric)
         
-    except:
-        return("")
+    except Exception:
+        # Return empty-but-typed structure to avoid callers breaking on import-time failures
+        return ("", [], {}, {}, [], [])
     
 
 ###Main
